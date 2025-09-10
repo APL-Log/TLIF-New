@@ -1,0 +1,1824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TLIF - Tank Lorry Induction System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .card-shadow { box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .status-review { background: #fef3c7; color: #92400e; }
+        .status-reviewed { background: #dbeafe; color: #1e40af; }
+        .status-approval-pending { background: #e0e7ff; color: #3730a3; }
+        .status-approved { background: #d1fae5; color: #065f46; }
+        .status-not-okay { background: #fecaca; color: #991b1b; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Login Screen -->
+    <div id="loginScreen" class="min-h-screen gradient-bg flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl card-shadow p-8 w-full max-w-md">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.031 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                    </svg>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-900">TLIF System</h1>
+                <p class="text-gray-600 mt-2">Tank Lorry Induction Facility</p>
+            </div>
+            
+            <form id="loginForm" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Username</label>
+                    <input type="text" id="username" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter username" required>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                    <input type="password" id="password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter password" required>
+                </div>
+                
+                <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors">
+                    Sign In
+                </button>
+            </form>
+            
+            <div id="loginError" class="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg hidden">
+                Invalid username or password
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="mainApp" class="hidden min-h-screen bg-gray-50">
+        <!-- Header -->
+        <header class="bg-white shadow-sm border-b">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.031 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                            </svg>
+                        </div>
+                        <h1 class="text-xl font-semibold text-gray-900">TLIF System</h1>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <span id="userWelcome" class="text-sm text-gray-600"></span>
+                        <button id="logoutBtn" class="text-sm text-red-600 hover:text-red-800">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="bg-white shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex space-x-8">
+                    <button id="dashboardTab" class="py-4 px-2 border-b-2 border-blue-500 text-blue-600 font-medium text-sm">Dashboard</button>
+                    <button id="newCaseTab" class="py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm hidden">New Case</button>
+                    <button id="adminTab" class="py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm hidden">Admin Panel</button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Dashboard View -->
+        <div id="dashboardView" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">Dashboard</h2>
+                <p class="text-gray-600">Tank Lorry Induction Cases Overview</p>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+                <div class="bg-white rounded-lg card-shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-2 bg-yellow-100 rounded-lg">
+                            <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Review</p>
+                            <p id="reviewCount" class="text-2xl font-semibold text-gray-900">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg card-shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-2 bg-blue-100 rounded-lg">
+                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Reviewed</p>
+                            <p id="reviewedCount" class="text-2xl font-semibold text-gray-900">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg card-shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-2 bg-purple-100 rounded-lg">
+                            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Approval Pending</p>
+                            <p id="approvalPendingCount" class="text-2xl font-semibold text-gray-900">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg card-shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-2 bg-green-100 rounded-lg">
+                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Approved</p>
+                            <p id="approvedCount" class="text-2xl font-semibold text-gray-900">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg card-shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-2 bg-red-100 rounded-lg">
+                            <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Not Okay</p>
+                            <p id="notOkayCount" class="text-2xl font-semibold text-gray-900">0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Export Options -->
+            <div class="mb-6 flex justify-between items-center">
+                <h3 class="text-lg font-semibold text-gray-900">All Cases</h3>
+                <div class="flex space-x-3">
+                    <button id="exportCSV" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm">
+                        Export CSV
+                    </button>
+                    <button id="printPDF" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm">
+                        Print PDF
+                    </button>
+                </div>
+            </div>
+
+            <!-- Cases Table -->
+            <div class="bg-white rounded-lg card-shadow overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Registration No.</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lorry Details</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Submitted By</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="casesTableBody" class="bg-white divide-y divide-gray-200">
+                            <!-- Cases will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- New Case View -->
+        <div id="newCaseView" class="hidden max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">New Tank Lorry Induction Case</h2>
+                <p class="text-gray-600">Fill all mandatory fields and upload required documents</p>
+            </div>
+
+            <form id="newCaseForm" class="bg-white rounded-lg card-shadow p-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Lorry Registration Number *</label>
+                        <input type="text" id="lorryRegNo" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Driver Name *</label>
+                        <input type="text" id="driverName" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Driver CNIC *</label>
+                        <input type="text" id="driverCNIC" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="00000-0000000-0" required>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">CNIC Expiry Date *</label>
+                        <input type="date" id="cnicExpiryDate" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Contact Number *</label>
+                        <input type="tel" id="contactNumber" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Carriage Name *</label>
+                        <input type="text" id="carriageName" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Driver HTV License Number *</label>
+                        <input type="text" id="htvLicenseNumber" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">HTV License Expiry Date *</label>
+                        <input type="date" id="htvExpiryDate" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">HTV License District *</label>
+                        <input type="text" id="htvDistrict" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., Karachi, Lahore" required>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tank Capacity (Liters) *</label>
+                        <input type="number" id="tankCapacity" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                    </div>
+                </div>
+
+                <div class="mb-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Document Uploads *</h3>
+                    <div class="space-y-6">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 p-4 border border-gray-200 rounded-lg">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Vehicle Registration Certificate</label>
+                                <input type="file" id="vehicleReg" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" accept=".pdf,.jpg,.jpeg,.png" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Remarks for Vehicle Registration</label>
+                                <textarea id="vehicleRegRemarks" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Add remarks for vehicle registration document..."></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 p-4 border border-gray-200 rounded-lg">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Driver License</label>
+                                <input type="file" id="driverLicense" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" accept=".pdf,.jpg,.jpeg,.png" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Remarks for Driver License</label>
+                                <textarea id="driverLicenseRemarks" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Add remarks for driver license document..."></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 p-4 border border-gray-200 rounded-lg">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Insurance Certificate</label>
+                                <input type="file" id="insurance" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" accept=".pdf,.jpg,.jpeg,.png" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Remarks for Insurance Certificate</label>
+                                <textarea id="insuranceRemarks" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Add remarks for insurance certificate..."></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 p-4 border border-gray-200 rounded-lg">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Safety Inspection Report</label>
+                                <input type="file" id="safetyReport" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" accept=".pdf,.jpg,.jpeg,.png" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Remarks for Safety Report</label>
+                                <textarea id="safetyReportRemarks" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Add remarks for safety inspection report..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-4">
+                    <button type="button" id="cancelNewCase" class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        Submit for Review
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Case Detail Modal -->
+        <div id="caseModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+            <div class="relative top-20 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-md bg-white">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 id="modalTitle" class="text-lg font-semibold text-gray-900"></h3>
+                    <button id="closeModal" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div id="modalContent" class="space-y-6">
+                    <!-- Content will be populated dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Panel -->
+        <div id="adminView" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">Admin Panel</h2>
+                <p class="text-gray-600">Complete user management and system administration</p>
+            </div>
+
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                <!-- Add User -->
+                <div class="bg-white rounded-lg card-shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Add New User</h3>
+                    <form id="addUserForm" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                            <input type="text" id="newUserFullName" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter full name" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Username</label>
+                            <input type="text" id="newUsername" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter username" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                            <input type="password" id="newPassword" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter password" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Role</label>
+                            <select id="newUserRole" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                                <option value="">Select Role</option>
+                                <option value="regional">Regional Staff</option>
+                                <option value="reviewer">Reviewer</option>
+                                <option value="approval">Approval Authority</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                            Add User
+                        </button>
+                    </form>
+                </div>
+
+                <!-- User Management -->
+                <div class="xl:col-span-2 bg-white rounded-lg card-shadow p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-semibold text-gray-900">User Management</h3>
+                        <div class="flex space-x-3">
+                            <select id="roleFilter" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">All Roles</option>
+                                <option value="regional">Regional Staff</option>
+                                <option value="reviewer">Reviewer</option>
+                                <option value="approval">Approval Authority</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                            <button id="refreshUsers" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm">
+                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                </svg>
+                                Refresh
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody" class="bg-white divide-y divide-gray-200">
+                                <!-- Users will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Statistics -->
+            <div class="mt-8 grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="bg-white rounded-lg card-shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-2 bg-blue-100 rounded-lg">
+                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Total Users</p>
+                            <p id="totalUsersCount" class="text-2xl font-semibold text-gray-900">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg card-shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-2 bg-green-100 rounded-lg">
+                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Regional Staff</p>
+                            <p id="regionalUsersCount" class="text-2xl font-semibold text-gray-900">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg card-shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-2 bg-yellow-100 rounded-lg">
+                            <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Reviewers</p>
+                            <p id="reviewerUsersCount" class="text-2xl font-semibold text-gray-900">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg card-shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-2 bg-purple-100 rounded-lg">
+                            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.031 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Approvers</p>
+                            <p id="approvalUsersCount" class="text-2xl font-semibold text-gray-900">0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // System Data
+        let currentUser = null;
+        let cases = [];
+        let users = {
+            // Regional Staff
+            'talha': { password: '123', role: 'regional', name: 'Talha' },
+            'usama': { password: '123', role: 'regional', name: 'Usama' },
+            'faqeer': { password: '123', role: 'regional', name: 'Faqeer' },
+            'nadeem': { password: '123', role: 'regional', name: 'Nadeem' },
+            'saeed': { password: '123', role: 'regional', name: 'Saeed' },
+            'ghazenfer': { password: '123', role: 'regional', name: 'Ghazenfer' },
+            'azam': { password: '123', role: 'regional', name: 'Azam' },
+            'hussain': { password: '132', role: 'regional', name: 'Hussain' },
+            // Reviewer
+            'hamza': { password: '321', role: 'reviewer', name: 'Hamza' },
+            // Approval Authority
+            'masood': { password: 'Masood123', role: 'approval', name: 'Masood' },
+            // Admin
+            'nabeel': { password: 'Nabeel321', role: 'admin', name: 'Nabeel' }
+        };
+
+        // Generate unique registration number
+        function generateRegNumber() {
+            const date = new Date();
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+            return `TL${year}${month}${day}${random}`;
+        }
+
+        // Login functionality
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value.toLowerCase();
+            const password = document.getElementById('password').value;
+            
+            if (users[username] && users[username].password === password) {
+                currentUser = { username, ...users[username] };
+                showMainApp();
+            } else {
+                document.getElementById('loginError').classList.remove('hidden');
+            }
+        });
+
+        // Show main application
+        function showMainApp() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            document.getElementById('userWelcome').textContent = `Welcome, ${currentUser.name} (${currentUser.role})`;
+            
+            // Show appropriate tabs based on role
+            if (currentUser.role === 'regional') {
+                document.getElementById('newCaseTab').classList.remove('hidden');
+            }
+            if (currentUser.role === 'admin') {
+                document.getElementById('adminTab').classList.remove('hidden');
+            }
+            
+            // Hide admin tab for non-admin users
+            if (currentUser.role !== 'admin') {
+                document.getElementById('adminTab').classList.add('hidden');
+            }
+            
+            updateDashboard();
+            populateUsersList();
+            updateUserStats();
+        }
+
+        // Navigation
+        document.getElementById('dashboardTab').addEventListener('click', () => showView('dashboard'));
+        document.getElementById('newCaseTab').addEventListener('click', () => showView('newCase'));
+        document.getElementById('adminTab').addEventListener('click', () => showView('admin'));
+
+        function showView(view) {
+            // Check admin access for admin panel
+            if (view === 'admin' && currentUser.role !== 'admin') {
+                alert('Access denied. Admin privileges required.');
+                return;
+            }
+            
+            // Hide all views
+            document.getElementById('dashboardView').classList.add('hidden');
+            document.getElementById('newCaseView').classList.add('hidden');
+            document.getElementById('adminView').classList.add('hidden');
+            
+            // Remove active state from all tabs
+            document.querySelectorAll('nav button').forEach(btn => {
+                btn.classList.remove('border-blue-500', 'text-blue-600');
+                btn.classList.add('border-transparent', 'text-gray-500');
+            });
+            
+            // Show selected view and activate tab
+            if (view === 'dashboard') {
+                document.getElementById('dashboardView').classList.remove('hidden');
+                document.getElementById('dashboardTab').classList.add('border-blue-500', 'text-blue-600');
+                document.getElementById('dashboardTab').classList.remove('border-transparent', 'text-gray-500');
+                updateDashboard();
+            } else if (view === 'newCase') {
+                document.getElementById('newCaseView').classList.remove('hidden');
+                document.getElementById('newCaseTab').classList.add('border-blue-500', 'text-blue-600');
+                document.getElementById('newCaseTab').classList.remove('border-transparent', 'text-gray-500');
+            } else if (view === 'admin') {
+                document.getElementById('adminView').classList.remove('hidden');
+                document.getElementById('adminTab').classList.add('border-blue-500', 'text-blue-600');
+                document.getElementById('adminTab').classList.remove('border-transparent', 'text-gray-500');
+                populateUsersList();
+            }
+        }
+
+        // New Case Form
+        document.getElementById('newCaseForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const newCase = {
+                id: generateRegNumber(),
+                lorryRegNo: document.getElementById('lorryRegNo').value,
+                driverName: document.getElementById('driverName').value,
+                driverCNIC: document.getElementById('driverCNIC').value,
+                cnicExpiryDate: document.getElementById('cnicExpiryDate').value,
+                contactNumber: document.getElementById('contactNumber').value,
+                carriageName: document.getElementById('carriageName').value,
+                htvLicenseNumber: document.getElementById('htvLicenseNumber').value,
+                htvExpiryDate: document.getElementById('htvExpiryDate').value,
+                htvDistrict: document.getElementById('htvDistrict').value,
+                tankCapacity: document.getElementById('tankCapacity').value,
+                submittedBy: currentUser.name,
+                submittedDate: new Date().toLocaleDateString(),
+                status: 'Review',
+                documents: {
+                    vehicleReg: document.getElementById('vehicleReg').files[0]?.name || 'Not uploaded',
+                    driverLicense: document.getElementById('driverLicense').files[0]?.name || 'Not uploaded',
+                    insurance: document.getElementById('insurance').files[0]?.name || 'Not uploaded',
+                    safetyReport: document.getElementById('safetyReport').files[0]?.name || 'Not uploaded'
+                },
+                documentRemarks: {
+                    vehicleReg: document.getElementById('vehicleRegRemarks').value || '',
+                    driverLicense: document.getElementById('driverLicenseRemarks').value || '',
+                    insurance: document.getElementById('insuranceRemarks').value || '',
+                    safetyReport: document.getElementById('safetyReportRemarks').value || ''
+                },
+                reviewComments: '',
+                approvalRemarks: '',
+                verificationStatus: {}
+            };
+            
+            cases.push(newCase);
+            alert(`Case submitted successfully! Registration Number: ${newCase.id}`);
+            document.getElementById('newCaseForm').reset();
+            showView('dashboard');
+        });
+
+        document.getElementById('cancelNewCase').addEventListener('click', () => showView('dashboard'));
+
+        // Update Dashboard
+        function updateDashboard() {
+            const statusCounts = {
+                Review: 0,
+                Reviewed: 0,
+                'Approval Pending': 0,
+                Approved: 0,
+                'Not Okay': 0
+            };
+            
+            cases.forEach(case_ => {
+                statusCounts[case_.status]++;
+            });
+            
+            document.getElementById('reviewCount').textContent = statusCounts.Review;
+            document.getElementById('reviewedCount').textContent = statusCounts.Reviewed;
+            document.getElementById('approvalPendingCount').textContent = statusCounts['Approval Pending'];
+            document.getElementById('approvedCount').textContent = statusCounts.Approved;
+            document.getElementById('notOkayCount').textContent = statusCounts['Not Okay'];
+            
+            populateCasesTable();
+        }
+
+        // Populate Cases Table
+        function populateCasesTable() {
+            const tbody = document.getElementById('casesTableBody');
+            tbody.innerHTML = '';
+            
+            cases.forEach(case_ => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${case_.id}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <div>${case_.lorryRegNo}</div>
+                        <div class="text-xs text-gray-400">${case_.carriageName}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${case_.submittedBy}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${case_.submittedDate}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full status-${case_.status.toLowerCase().replace(' ', '-')}">
+                            ${case_.status}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button onclick="viewCase('${case_.id}')" class="text-blue-600 hover:text-blue-900 mr-3">View</button>
+                        ${getActionButton(case_)}
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Get appropriate action button based on user role and case status
+        function getActionButton(case_) {
+            if (currentUser.role === 'reviewer' && case_.status === 'Review') {
+                return `<button onclick="reviewCase('${case_.id}')" class="text-green-600 hover:text-green-900">Review</button>`;
+            } else if (currentUser.role === 'approval' && (case_.status === 'Reviewed' || case_.status === 'Approval Pending')) {
+                return `<button onclick="approveCase('${case_.id}')" class="text-purple-600 hover:text-purple-900">Approve</button>`;
+            } else if (currentUser.role === 'regional' && case_.status === 'Not Okay' && case_.submittedBy === currentUser.name) {
+                return `<button onclick="fixCase('${case_.id}')" class="text-orange-600 hover:text-orange-900">Fix</button>`;
+            }
+            return '';
+        }
+
+        // View Case Details
+        function viewCase(caseId) {
+            const case_ = cases.find(c => c.id === caseId);
+            if (!case_) return;
+            
+            document.getElementById('modalTitle').textContent = `Case Details - ${case_.id}`;
+            document.getElementById('modalContent').innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="font-semibold text-gray-900 mb-3">Basic Information</h4>
+                        <div class="space-y-2 text-sm">
+                            <div><span class="font-medium">Registration No:</span> ${case_.id}</div>
+                            <div><span class="font-medium">Lorry Reg No:</span> ${case_.lorryRegNo}</div>
+                            <div><span class="font-medium">Driver Name:</span> ${case_.driverName}</div>
+                            <div><span class="font-medium">Driver CNIC:</span> ${case_.driverCNIC}</div>
+                            <div><span class="font-medium">CNIC Expiry:</span> ${case_.cnicExpiryDate}</div>
+                            <div><span class="font-medium">Contact:</span> ${case_.contactNumber}</div>
+                            <div><span class="font-medium">Carriage Name:</span> ${case_.carriageName}</div>
+                            <div><span class="font-medium">HTV License No:</span> ${case_.htvLicenseNumber}</div>
+                            <div><span class="font-medium">HTV Expiry:</span> ${case_.htvExpiryDate}</div>
+                            <div><span class="font-medium">HTV District:</span> ${case_.htvDistrict}</div>
+                            <div><span class="font-medium">Tank Capacity:</span> ${case_.tankCapacity} L</div>
+                            <div><span class="font-medium">Submitted By:</span> ${case_.submittedBy}</div>
+                            <div><span class="font-medium">Date:</span> ${case_.submittedDate}</div>
+                            <div><span class="font-medium">Status:</span> <span class="px-2 py-1 text-xs rounded-full status-${case_.status.toLowerCase().replace(' ', '-')}">${case_.status}</span></div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-gray-900 mb-3">Documents & Remarks</h4>
+                        <div class="space-y-4 text-sm">
+                            <div class="border border-gray-200 rounded-lg p-3">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span><span class="font-medium">Vehicle Registration:</span> ${case_.documents.vehicleReg}</span>
+                                    ${case_.documents.vehicleReg !== 'Not uploaded' ? `<button onclick="viewDocument('${case_.id}', 'vehicleReg', '${case_.documents.vehicleReg}')" class="text-blue-600 hover:text-blue-800 text-xs">View Document</button>` : ''}
+                                </div>
+                                ${case_.documentRemarks?.vehicleReg ? `<div class="text-xs text-gray-600 bg-gray-50 p-2 rounded"><strong>Remarks:</strong> ${case_.documentRemarks.vehicleReg}</div>` : ''}
+                            </div>
+                            <div class="border border-gray-200 rounded-lg p-3">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span><span class="font-medium">Driver License:</span> ${case_.documents.driverLicense}</span>
+                                    ${case_.documents.driverLicense !== 'Not uploaded' ? `<button onclick="viewDocument('${case_.id}', 'driverLicense', '${case_.documents.driverLicense}')" class="text-blue-600 hover:text-blue-800 text-xs">View Document</button>` : ''}
+                                </div>
+                                ${case_.documentRemarks?.driverLicense ? `<div class="text-xs text-gray-600 bg-gray-50 p-2 rounded"><strong>Remarks:</strong> ${case_.documentRemarks.driverLicense}</div>` : ''}
+                            </div>
+                            <div class="border border-gray-200 rounded-lg p-3">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span><span class="font-medium">Insurance:</span> ${case_.documents.insurance}</span>
+                                    ${case_.documents.insurance !== 'Not uploaded' ? `<button onclick="viewDocument('${case_.id}', 'insurance', '${case_.documents.insurance}')" class="text-blue-600 hover:text-blue-800 text-xs">View Document</button>` : ''}
+                                </div>
+                                ${case_.documentRemarks?.insurance ? `<div class="text-xs text-gray-600 bg-gray-50 p-2 rounded"><strong>Remarks:</strong> ${case_.documentRemarks.insurance}</div>` : ''}
+                            </div>
+                            <div class="border border-gray-200 rounded-lg p-3">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span><span class="font-medium">Safety Report:</span> ${case_.documents.safetyReport}</span>
+                                    ${case_.documents.safetyReport !== 'Not uploaded' ? `<button onclick="viewDocument('${case_.id}', 'safetyReport', '${case_.documents.safetyReport}')" class="text-blue-600 hover:text-blue-800 text-xs">View Document</button>` : ''}
+                                </div>
+                                ${case_.documentRemarks?.safetyReport ? `<div class="text-xs text-gray-600 bg-gray-50 p-2 rounded"><strong>Remarks:</strong> ${case_.documentRemarks.safetyReport}</div>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                ${case_.reviewComments ? `<div class="mt-6"><h4 class="font-semibold text-gray-900 mb-2">Review Comments</h4><p class="text-sm text-gray-600 bg-gray-50 p-3 rounded">${case_.reviewComments}</p></div>` : ''}
+                ${case_.reviewerRemarks && Object.values(case_.reviewerRemarks).some(remark => remark) ? `
+                    <div class="mt-6">
+                        <h4 class="font-semibold text-gray-900 mb-3">Reviewer's Document Remarks</h4>
+                        <div class="space-y-2">
+                            ${case_.reviewerRemarks.vehicleReg ? `<div class="text-sm bg-blue-50 p-3 rounded"><strong>Vehicle Registration:</strong> ${case_.reviewerRemarks.vehicleReg}</div>` : ''}
+                            ${case_.reviewerRemarks.driverLicense ? `<div class="text-sm bg-blue-50 p-3 rounded"><strong>Driver License:</strong> ${case_.reviewerRemarks.driverLicense}</div>` : ''}
+                            ${case_.reviewerRemarks.insurance ? `<div class="text-sm bg-blue-50 p-3 rounded"><strong>Insurance:</strong> ${case_.reviewerRemarks.insurance}</div>` : ''}
+                            ${case_.reviewerRemarks.safetyReport ? `<div class="text-sm bg-blue-50 p-3 rounded"><strong>Safety Report:</strong> ${case_.reviewerRemarks.safetyReport}</div>` : ''}
+                        </div>
+                    </div>
+                ` : ''}
+                ${case_.approvalRemarks ? `<div class="mt-6"><h4 class="font-semibold text-gray-900 mb-2">Approval Authority Remarks</h4><p class="text-sm text-gray-600 bg-purple-50 p-3 rounded">${case_.approvalRemarks}</p></div>` : ''}
+            `;
+            document.getElementById('caseModal').classList.remove('hidden');
+        }
+
+        // Review Case (Hamza)
+        function reviewCase(caseId) {
+            const case_ = cases.find(c => c.id === caseId);
+            if (!case_) return;
+            
+            document.getElementById('modalTitle').textContent = `Review Case - ${case_.id}`;
+            document.getElementById('modalContent').innerHTML = `
+                <form id="reviewForm" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-semibold text-gray-900 mb-3">Document Verification</h4>
+                            <div class="space-y-4">
+                                <div class="p-4 border rounded-lg">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <div class="flex items-center space-x-3">
+                                            <span class="text-sm font-medium">Vehicle Registration</span>
+                                            <button type="button" onclick="viewDocument('${case_.id}', 'vehicleReg', '${case_.documents.vehicleReg}')" class="text-blue-600 hover:text-blue-800 text-xs">View Document</button>
+                                        </div>
+                                        <div class="flex space-x-2">
+                                            <label class="flex items-center">
+                                                <input type="radio" name="vehicleReg" value="verified" class="mr-2"> Verified
+                                            </label>
+                                            <label class="flex items-center">
+                                                <input type="radio" name="vehicleReg" value="not-verified" class="mr-2"> Not Verified
+                                            </label>
+                                        </div>
+                                    </div>
+                                    ${case_.documentRemarks?.vehicleReg ? `<div class="text-xs text-gray-600 bg-gray-50 p-2 rounded mb-3"><strong>Requestor Remarks:</strong> ${case_.documentRemarks.vehicleReg}</div>` : ''}
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-700 mb-1">Reviewer Remarks</label>
+                                        <textarea name="vehicleRegRemarks" rows="2" class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Add reviewer remarks..."></textarea>
+                                    </div>
+                                </div>
+                                <div class="p-4 border rounded-lg">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <div class="flex items-center space-x-3">
+                                            <span class="text-sm font-medium">Driver License</span>
+                                            <button type="button" onclick="viewDocument('${case_.id}', 'driverLicense', '${case_.documents.driverLicense}')" class="text-blue-600 hover:text-blue-800 text-xs">View Document</button>
+                                        </div>
+                                        <div class="flex space-x-2">
+                                            <label class="flex items-center">
+                                                <input type="radio" name="driverLicense" value="verified" class="mr-2"> Verified
+                                            </label>
+                                            <label class="flex items-center">
+                                                <input type="radio" name="driverLicense" value="not-verified" class="mr-2"> Not Verified
+                                            </label>
+                                        </div>
+                                    </div>
+                                    ${case_.documentRemarks?.driverLicense ? `<div class="text-xs text-gray-600 bg-gray-50 p-2 rounded mb-3"><strong>Requestor Remarks:</strong> ${case_.documentRemarks.driverLicense}</div>` : ''}
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-700 mb-1">Reviewer Remarks</label>
+                                        <textarea name="driverLicenseRemarks" rows="2" class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Add reviewer remarks..."></textarea>
+                                    </div>
+                                </div>
+                                <div class="p-4 border rounded-lg">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <div class="flex items-center space-x-3">
+                                            <span class="text-sm font-medium">Insurance Certificate</span>
+                                            <button type="button" onclick="viewDocument('${case_.id}', 'insurance', '${case_.documents.insurance}')" class="text-blue-600 hover:text-blue-800 text-xs">View Document</button>
+                                        </div>
+                                        <div class="flex space-x-2">
+                                            <label class="flex items-center">
+                                                <input type="radio" name="insurance" value="verified" class="mr-2"> Verified
+                                            </label>
+                                            <label class="flex items-center">
+                                                <input type="radio" name="insurance" value="not-verified" class="mr-2"> Not Verified
+                                            </label>
+                                        </div>
+                                    </div>
+                                    ${case_.documentRemarks?.insurance ? `<div class="text-xs text-gray-600 bg-gray-50 p-2 rounded mb-3"><strong>Requestor Remarks:</strong> ${case_.documentRemarks.insurance}</div>` : ''}
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-700 mb-1">Reviewer Remarks</label>
+                                        <textarea name="insuranceRemarks" rows="2" class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Add reviewer remarks..."></textarea>
+                                    </div>
+                                </div>
+                                <div class="p-4 border rounded-lg">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <div class="flex items-center space-x-3">
+                                            <span class="text-sm font-medium">Safety Report</span>
+                                            <button type="button" onclick="viewDocument('${case_.id}', 'safetyReport', '${case_.documents.safetyReport}')" class="text-blue-600 hover:text-blue-800 text-xs">View Document</button>
+                                        </div>
+                                        <div class="flex space-x-2">
+                                            <label class="flex items-center">
+                                                <input type="radio" name="safetyReport" value="verified" class="mr-2"> Verified
+                                            </label>
+                                            <label class="flex items-center">
+                                                <input type="radio" name="safetyReport" value="not-verified" class="mr-2"> Not Verified
+                                            </label>
+                                        </div>
+                                    </div>
+                                    ${case_.documentRemarks?.safetyReport ? `<div class="text-xs text-gray-600 bg-gray-50 p-2 rounded mb-3"><strong>Requestor Remarks:</strong> ${case_.documentRemarks.safetyReport}</div>` : ''}
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-700 mb-1">Reviewer Remarks</label>
+                                        <textarea name="safetyReportRemarks" rows="2" class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Add reviewer remarks..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-900 mb-3">Case Information</h4>
+                            <div class="space-y-2 text-sm bg-gray-50 p-4 rounded">
+                                <div><span class="font-medium">Lorry Reg:</span> ${case_.lorryRegNo}</div>
+                                <div><span class="font-medium">Driver:</span> ${case_.driverName}</div>
+                                <div><span class="font-medium">Company:</span> ${case_.companyName}</div>
+                                <div><span class="font-medium">Capacity:</span> ${case_.tankCapacity} L</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Comments (Required for Not Verified items)</label>
+                        <textarea id="reviewComments" rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter comments for any not verified items..."></textarea>
+                    </div>
+                    <div class="flex justify-end space-x-4">
+                        <button type="button" onclick="closeModal()" class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">Cancel</button>
+                        <button type="submit" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Submit Review</button>
+                    </div>
+                </form>
+            `;
+            
+            document.getElementById('reviewForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(e.target);
+                const verificationStatus = {
+                    vehicleReg: formData.get('vehicleReg'),
+                    driverLicense: formData.get('driverLicense'),
+                    insurance: formData.get('insurance'),
+                    safetyReport: formData.get('safetyReport')
+                };
+                
+                const reviewerRemarks = {
+                    vehicleReg: formData.get('vehicleRegRemarks') || '',
+                    driverLicense: formData.get('driverLicenseRemarks') || '',
+                    insurance: formData.get('insuranceRemarks') || '',
+                    safetyReport: formData.get('safetyReportRemarks') || ''
+                };
+                
+                const hasNotVerified = Object.values(verificationStatus).includes('not-verified');
+                const comments = document.getElementById('reviewComments').value;
+                
+                if (hasNotVerified && !comments.trim()) {
+                    alert('Comments are mandatory when marking items as Not Verified');
+                    return;
+                }
+                
+                case_.verificationStatus = verificationStatus;
+                case_.reviewerRemarks = reviewerRemarks;
+                case_.reviewComments = comments;
+                case_.reviewedDate = new Date().toLocaleDateString();
+                case_.status = hasNotVerified ? 'Not Okay' : 'Reviewed';
+                
+                closeModal();
+                updateDashboard();
+                alert(`Case ${hasNotVerified ? 'marked as Not Okay - sent back for corrections' : 'reviewed successfully - ready for approval'}`);
+            });
+            
+            document.getElementById('caseModal').classList.remove('hidden');
+        }
+
+        // Approve Case (Masood)
+        function approveCase(caseId) {
+            const case_ = cases.find(c => c.id === caseId);
+            if (!case_) return;
+            
+            document.getElementById('modalTitle').textContent = `Final Approval - ${case_.id}`;
+            document.getElementById('modalContent').innerHTML = `
+                <div class="space-y-6">
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-gray-900 mb-3">Case Summary</h4>
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div><span class="font-medium">Lorry Reg:</span> ${case_.lorryRegNo}</div>
+                            <div><span class="font-medium">Driver:</span> ${case_.driverName}</div>
+                            <div><span class="font-medium">Carriage Name:</span> ${case_.carriageName}</div>
+                            <div><span class="font-medium">Capacity:</span> ${case_.tankCapacity} L</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                        <h4 class="font-semibold text-blue-800 mb-3">Reviewer's Document Assessment</h4>
+                        <div class="space-y-3">
+                            <div class="bg-white p-3 rounded border">
+                                <div class="flex justify-between items-center mb-2">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="font-medium text-sm">Vehicle Registration Certificate</span>
+                                        <button onclick="viewDocument('${case_.id}', 'vehicleReg', '${case_.documents.vehicleReg}')" class="text-blue-600 hover:text-blue-800 text-xs">View</button>
+                                        <button onclick="downloadDocument('${case_.documents.vehicleReg}')" class="text-green-600 hover:text-green-800 text-xs">Download</button>
+                                    </div>
+                                    <span class="px-2 py-1 text-xs rounded-full ${case_.verificationStatus?.vehicleReg === 'verified' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                                        ${case_.verificationStatus?.vehicleReg === 'verified' ? 'Verified' : 'Not Verified'}
+                                    </span>
+                                </div>
+                                ${case_.documentRemarks?.vehicleReg ? `<div class="text-xs text-gray-600 bg-gray-50 p-2 rounded mb-2"><strong>Requestor Remarks:</strong> ${case_.documentRemarks.vehicleReg}</div>` : ''}
+                                ${case_.reviewerRemarks?.vehicleReg ? `<div class="text-xs text-blue-700 bg-blue-50 p-2 rounded"><strong>Reviewer Remarks:</strong> ${case_.reviewerRemarks.vehicleReg}</div>` : ''}
+                            </div>
+                            <div class="bg-white p-3 rounded border">
+                                <div class="flex justify-between items-center mb-2">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="font-medium text-sm">Driver License</span>
+                                        <button onclick="viewDocument('${case_.id}', 'driverLicense', '${case_.documents.driverLicense}')" class="text-blue-600 hover:text-blue-800 text-xs">View</button>
+                                        <button onclick="downloadDocument('${case_.documents.driverLicense}')" class="text-green-600 hover:text-green-800 text-xs">Download</button>
+                                    </div>
+                                    <span class="px-2 py-1 text-xs rounded-full ${case_.verificationStatus?.driverLicense === 'verified' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                                        ${case_.verificationStatus?.driverLicense === 'verified' ? 'Verified' : 'Not Verified'}
+                                    </span>
+                                </div>
+                                ${case_.documentRemarks?.driverLicense ? `<div class="text-xs text-gray-600 bg-gray-50 p-2 rounded mb-2"><strong>Requestor Remarks:</strong> ${case_.documentRemarks.driverLicense}</div>` : ''}
+                                ${case_.reviewerRemarks?.driverLicense ? `<div class="text-xs text-blue-700 bg-blue-50 p-2 rounded"><strong>Reviewer Remarks:</strong> ${case_.reviewerRemarks.driverLicense}</div>` : ''}
+                            </div>
+                            <div class="bg-white p-3 rounded border">
+                                <div class="flex justify-between items-center mb-2">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="font-medium text-sm">Insurance Certificate</span>
+                                        <button onclick="viewDocument('${case_.id}', 'insurance', '${case_.documents.insurance}')" class="text-blue-600 hover:text-blue-800 text-xs">View</button>
+                                        <button onclick="downloadDocument('${case_.documents.insurance}')" class="text-green-600 hover:text-green-800 text-xs">Download</button>
+                                    </div>
+                                    <span class="px-2 py-1 text-xs rounded-full ${case_.verificationStatus?.insurance === 'verified' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                                        ${case_.verificationStatus?.insurance === 'verified' ? 'Verified' : 'Not Verified'}
+                                    </span>
+                                </div>
+                                ${case_.documentRemarks?.insurance ? `<div class="text-xs text-gray-600 bg-gray-50 p-2 rounded mb-2"><strong>Requestor Remarks:</strong> ${case_.documentRemarks.insurance}</div>` : ''}
+                                ${case_.reviewerRemarks?.insurance ? `<div class="text-xs text-blue-700 bg-blue-50 p-2 rounded"><strong>Reviewer Remarks:</strong> ${case_.reviewerRemarks.insurance}</div>` : ''}
+                            </div>
+                            <div class="bg-white p-3 rounded border">
+                                <div class="flex justify-between items-center mb-2">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="font-medium text-sm">Safety Inspection Report</span>
+                                        <button onclick="viewDocument('${case_.id}', 'safetyReport', '${case_.documents.safetyReport}')" class="text-blue-600 hover:text-blue-800 text-xs">View</button>
+                                        <button onclick="downloadDocument('${case_.documents.safetyReport}')" class="text-green-600 hover:text-green-800 text-xs">Download</button>
+                                    </div>
+                                    <span class="px-2 py-1 text-xs rounded-full ${case_.verificationStatus?.safetyReport === 'verified' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                                        ${case_.verificationStatus?.safetyReport === 'verified' ? 'Verified' : 'Not Verified'}
+                                    </span>
+                                </div>
+                                ${case_.documentRemarks?.safetyReport ? `<div class="text-xs text-gray-600 bg-gray-50 p-2 rounded mb-2"><strong>Requestor Remarks:</strong> ${case_.documentRemarks.safetyReport}</div>` : ''}
+                                ${case_.reviewerRemarks?.safetyReport ? `<div class="text-xs text-blue-700 bg-blue-50 p-2 rounded"><strong>Reviewer Remarks:</strong> ${case_.reviewerRemarks.safetyReport}</div>` : ''}
+                            </div>
+                        </div>
+                        ${case_.reviewComments ? `<div class="mt-4 p-3 bg-blue-100 rounded"><strong class="text-blue-800">Overall Review Comments:</strong><br><span class="text-blue-700">${case_.reviewComments}</span></div>` : ''}
+                    </div>
+                    
+                    <form id="approvalForm" class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-3">Final Decision</label>
+                            <div class="flex space-x-6">
+                                <label class="flex items-center">
+                                    <input type="radio" name="decision" value="approved" class="mr-2" required> Approved
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="decision" value="not-approved" class="mr-2" required> Not Approved
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Approval Authority Remarks</label>
+                            <textarea id="approvalRemarks" rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter remarks (mandatory for Not Approved cases)..."></textarea>
+                            <p class="text-xs text-gray-500 mt-1">Note: Remarks are mandatory when marking case as "Not Approved"</p>
+                        </div>
+                        
+                        <div class="flex justify-end space-x-4">
+                            <button type="button" onclick="closeModal()" class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">Cancel</button>
+                            <button type="submit" class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700">Submit Decision</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            document.getElementById('approvalForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(e.target);
+                const decision = formData.get('decision');
+                const remarks = document.getElementById('approvalRemarks').value;
+                
+                if (decision === 'not-approved' && !remarks.trim()) {
+                    alert('Remarks are mandatory when marking case as "Not Approved"');
+                    return;
+                }
+                
+                case_.approvalRemarks = remarks;
+                case_.approvedDate = new Date().toLocaleDateString();
+                case_.status = decision === 'approved' ? 'Approved' : 'Not Okay';
+                
+                closeModal();
+                updateDashboard();
+                alert(`Case ${decision === 'approved' ? 'approved successfully' : 'marked as Not Okay - sent back for corrections'}`);
+            });
+            
+            document.getElementById('caseModal').classList.remove('hidden');
+        }
+
+        // Fix Case (Regional Staff)
+        function fixCase(caseId) {
+            const case_ = cases.find(c => c.id === caseId);
+            if (!case_) return;
+            
+            document.getElementById('modalTitle').textContent = `Fix Case - ${case_.id}`;
+            document.getElementById('modalContent').innerHTML = `
+                <div class="space-y-6">
+                    <div class="bg-red-50 border border-red-200 p-4 rounded-lg">
+                        <h4 class="font-semibold text-red-800 mb-2">Issues to Fix</h4>
+                        ${case_.reviewComments ? `<div class="mb-3"><strong>Review Comments:</strong><br><span class="text-red-700">${case_.reviewComments}</span></div>` : ''}
+                        ${case_.approvalRemarks ? `<div><strong>Approval Authority Remarks:</strong><br><span class="text-red-700">${case_.approvalRemarks}</span></div>` : ''}
+                    </div>
+                    
+                    <form id="fixForm" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Lorry Registration Number</label>
+                                <input type="text" id="fixLorryRegNo" value="${case_.lorryRegNo}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Driver Name</label>
+                                <input type="text" id="fixDriverName" value="${case_.driverName}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Driver CNIC</label>
+                                <input type="text" id="fixDriverCNIC" value="${case_.driverCNIC}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Contact Number</label>
+                                <input type="tel" id="fixContactNumber" value="${case_.contactNumber}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">CNIC Expiry Date</label>
+                                <input type="date" id="fixCnicExpiryDate" value="${case_.cnicExpiryDate}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Carriage Name</label>
+                                <input type="text" id="fixCarriageName" value="${case_.carriageName}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">HTV License Number</label>
+                                <input type="text" id="fixHtvLicenseNumber" value="${case_.htvLicenseNumber}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">HTV License Expiry Date</label>
+                                <input type="date" id="fixHtvExpiryDate" value="${case_.htvExpiryDate}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">HTV License District</label>
+                                <input type="text" id="fixHtvDistrict" value="${case_.htvDistrict}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Tank Capacity (Liters)</label>
+                                <input type="number" id="fixTankCapacity" value="${case_.tankCapacity}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-900 mb-4">Re-upload Documents & Update Remarks</h4>
+                            <div class="space-y-6">
+                                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 p-4 border border-gray-200 rounded-lg">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Vehicle Registration Certificate</label>
+                                        <input type="file" id="fixVehicleReg" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" accept=".pdf,.jpg,.jpeg,.png">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Remarks for Vehicle Registration</label>
+                                        <textarea id="fixVehicleRegRemarks" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Update remarks for vehicle registration...">${case_.documentRemarks?.vehicleReg || ''}</textarea>
+                                    </div>
+                                </div>
+                                
+                                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 p-4 border border-gray-200 rounded-lg">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Driver License</label>
+                                        <input type="file" id="fixDriverLicense" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" accept=".pdf,.jpg,.jpeg,.png">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Remarks for Driver License</label>
+                                        <textarea id="fixDriverLicenseRemarks" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Update remarks for driver license...">${case_.documentRemarks?.driverLicense || ''}</textarea>
+                                    </div>
+                                </div>
+                                
+                                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 p-4 border border-gray-200 rounded-lg">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Insurance Certificate</label>
+                                        <input type="file" id="fixInsurance" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" accept=".pdf,.jpg,.jpeg,.png">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Remarks for Insurance Certificate</label>
+                                        <textarea id="fixInsuranceRemarks" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Update remarks for insurance certificate...">${case_.documentRemarks?.insurance || ''}</textarea>
+                                    </div>
+                                </div>
+                                
+                                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 p-4 border border-gray-200 rounded-lg">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Safety Inspection Report</label>
+                                        <input type="file" id="fixSafetyReport" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" accept=".pdf,.jpg,.jpeg,.png">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Remarks for Safety Report</label>
+                                        <textarea id="fixSafetyReportRemarks" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Update remarks for safety report...">${case_.documentRemarks?.safetyReport || ''}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-end space-x-4">
+                            <button type="button" onclick="closeModal()" class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">Cancel</button>
+                            <button type="submit" class="px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700">Resubmit for Review</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            document.getElementById('fixForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Update case data
+                case_.lorryRegNo = document.getElementById('fixLorryRegNo').value;
+                case_.driverName = document.getElementById('fixDriverName').value;
+                case_.driverCNIC = document.getElementById('fixDriverCNIC').value;
+                case_.cnicExpiryDate = document.getElementById('fixCnicExpiryDate').value;
+                case_.contactNumber = document.getElementById('fixContactNumber').value;
+                case_.carriageName = document.getElementById('fixCarriageName').value;
+                case_.htvLicenseNumber = document.getElementById('fixHtvLicenseNumber').value;
+                case_.htvExpiryDate = document.getElementById('fixHtvExpiryDate').value;
+                case_.htvDistrict = document.getElementById('fixHtvDistrict').value;
+                case_.tankCapacity = document.getElementById('fixTankCapacity').value;
+                
+                // Update documents if new files uploaded
+                if (document.getElementById('fixVehicleReg').files[0]) {
+                    case_.documents.vehicleReg = document.getElementById('fixVehicleReg').files[0].name;
+                }
+                if (document.getElementById('fixDriverLicense').files[0]) {
+                    case_.documents.driverLicense = document.getElementById('fixDriverLicense').files[0].name;
+                }
+                if (document.getElementById('fixInsurance').files[0]) {
+                    case_.documents.insurance = document.getElementById('fixInsurance').files[0].name;
+                }
+                if (document.getElementById('fixSafetyReport').files[0]) {
+                    case_.documents.safetyReport = document.getElementById('fixSafetyReport').files[0].name;
+                }
+                
+                // Update document remarks
+                case_.documentRemarks = {
+                    vehicleReg: document.getElementById('fixVehicleRegRemarks').value || '',
+                    driverLicense: document.getElementById('fixDriverLicenseRemarks').value || '',
+                    insurance: document.getElementById('fixInsuranceRemarks').value || '',
+                    safetyReport: document.getElementById('fixSafetyReportRemarks').value || ''
+                };
+                
+                case_.status = 'Review';
+                case_.reviewComments = '';
+                case_.reviewedDate = '';
+                case_.approvedDate = '';
+                case_.verificationStatus = {};
+                
+                closeModal();
+                updateDashboard();
+                alert('Case resubmitted for review successfully!');
+            });
+            
+            document.getElementById('caseModal').classList.remove('hidden');
+        }
+
+        // Admin Functions
+        document.getElementById('addUserForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const fullName = document.getElementById('newUserFullName').value;
+            const username = document.getElementById('newUsername').value.toLowerCase();
+            const password = document.getElementById('newPassword').value;
+            const role = document.getElementById('newUserRole').value;
+            
+            if (users[username]) {
+                alert('Username already exists!');
+                return;
+            }
+            
+            users[username] = {
+                password: password,
+                role: role,
+                name: fullName,
+                createdDate: new Date().toLocaleDateString(),
+                status: 'Active'
+            };
+            
+            alert('User added successfully!');
+            document.getElementById('addUserForm').reset();
+            populateUsersList();
+            updateUserStats();
+        });
+
+        // Role filter functionality
+        document.getElementById('roleFilter').addEventListener('change', function() {
+            populateUsersList();
+        });
+
+        // Refresh users button
+        document.getElementById('refreshUsers').addEventListener('click', function() {
+            populateUsersList();
+            updateUserStats();
+        });
+
+        function populateUsersList() {
+            const usersTableBody = document.getElementById('usersTableBody');
+            const roleFilter = document.getElementById('roleFilter').value;
+            usersTableBody.innerHTML = '';
+            
+            const filteredUsers = Object.entries(users).filter(([username, userData]) => {
+                return !roleFilter || userData.role === roleFilter;
+            });
+            
+            filteredUsers.forEach(([username, userData]) => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50';
+                
+                const roleColors = {
+                    'regional': 'bg-green-100 text-green-800',
+                    'reviewer': 'bg-yellow-100 text-yellow-800',
+                    'approval': 'bg-purple-100 text-purple-800',
+                    'admin': 'bg-blue-100 text-blue-800'
+                };
+                
+                row.innerHTML = `
+                    <td class="px-4 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                                <span class="text-sm font-medium text-gray-600">${userData.name.charAt(0).toUpperCase()}</span>
+                            </div>
+                            <div class="ml-4">
+                                <div class="text-sm font-medium text-gray-900">${userData.name}</div>
+                                <div class="text-sm text-gray-500">@${username}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${roleColors[userData.role] || 'bg-gray-100 text-gray-800'}">
+                            ${userData.role.charAt(0).toUpperCase() + userData.role.slice(1)}
+                        </span>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                            ${userData.status || 'Active'}
+                        </span>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
+                        <div class="flex space-x-2">
+                            <button onclick="editUser('${username}')" class="text-indigo-600 hover:text-indigo-900">Edit</button>
+                            <button onclick="resetPassword('${username}')" class="text-blue-600 hover:text-blue-900">Reset Password</button>
+                            ${username !== 'nabeel' ? `<button onclick="deleteUser('${username}')" class="text-red-600 hover:text-red-900">Delete</button>` : ''}
+                        </div>
+                    </td>
+                `;
+                usersTableBody.appendChild(row);
+            });
+        }
+
+        function updateUserStats() {
+            const roleCounts = {
+                total: 0,
+                regional: 0,
+                reviewer: 0,
+                approval: 0,
+                admin: 0
+            };
+            
+            Object.values(users).forEach(userData => {
+                roleCounts.total++;
+                roleCounts[userData.role]++;
+            });
+            
+            document.getElementById('totalUsersCount').textContent = roleCounts.total;
+            document.getElementById('regionalUsersCount').textContent = roleCounts.regional;
+            document.getElementById('reviewerUsersCount').textContent = roleCounts.reviewer;
+            document.getElementById('approvalUsersCount').textContent = roleCounts.approval;
+        }
+
+        function editUser(username) {
+            const userData = users[username];
+            if (!userData) return;
+            
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50';
+            modal.innerHTML = `
+                <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-semibold text-gray-900">Edit User - ${username}</h3>
+                        <button onclick="closeEditModal()" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <form id="editUserForm" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                            <input type="text" id="editUserFullName" value="${userData.name}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Username</label>
+                            <input type="text" value="${username}" class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100" disabled>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Role</label>
+                            <select id="editUserRole" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                                <option value="regional" ${userData.role === 'regional' ? 'selected' : ''}>Regional Staff</option>
+                                <option value="reviewer" ${userData.role === 'reviewer' ? 'selected' : ''}>Reviewer</option>
+                                <option value="approval" ${userData.role === 'approval' ? 'selected' : ''}>Approval Authority</option>
+                                <option value="admin" ${userData.role === 'admin' ? 'selected' : ''}>Admin</option>
+                            </select>
+                        </div>
+                        <div class="flex justify-end space-x-4 pt-4">
+                            <button type="button" onclick="closeEditModal()" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">Cancel</button>
+                            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Update User</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            document.getElementById('editUserForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const newName = document.getElementById('editUserFullName').value;
+                const newRole = document.getElementById('editUserRole').value;
+                
+                users[username].name = newName;
+                users[username].role = newRole;
+                
+                closeEditModal();
+                populateUsersList();
+                updateUserStats();
+                alert('User updated successfully!');
+            });
+        }
+
+        function closeEditModal() {
+            const modal = document.querySelector('.fixed.inset-0.bg-gray-600');
+            if (modal) {
+                document.body.removeChild(modal);
+            }
+        }
+
+        function resetPassword(username) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50';
+            modal.innerHTML = `
+                <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-semibold text-gray-900">Reset Password</h3>
+                        <button onclick="closePasswordModal()" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <p class="text-sm text-gray-600">Reset password for user: <strong>${users[username].name}</strong> (@${username})</p>
+                    </div>
+                    
+                    <form id="resetPasswordForm" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">New Password</label>
+                            <input type="password" id="newPasswordReset" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter new password" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
+                            <input type="password" id="confirmPasswordReset" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Confirm new password" required>
+                        </div>
+                        <div class="flex justify-end space-x-4 pt-4">
+                            <button type="button" onclick="closePasswordModal()" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">Cancel</button>
+                            <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">Reset Password</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            document.getElementById('resetPasswordForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const newPassword = document.getElementById('newPasswordReset').value;
+                const confirmPassword = document.getElementById('confirmPasswordReset').value;
+                
+                if (newPassword !== confirmPassword) {
+                    alert('Passwords do not match!');
+                    return;
+                }
+                
+                if (newPassword.length < 3) {
+                    alert('Password must be at least 3 characters long!');
+                    return;
+                }
+                
+                users[username].password = newPassword;
+                closePasswordModal();
+                alert(`Password reset successfully for ${users[username].name}!`);
+            });
+        }
+
+        function closePasswordModal() {
+            const modal = document.querySelector('.fixed.inset-0.bg-gray-600');
+            if (modal) {
+                document.body.removeChild(modal);
+            }
+        }
+
+        function deleteUser(username) {
+            const userData = users[username];
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50';
+            modal.innerHTML = `
+                <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-semibold text-red-600">Delete User</h3>
+                        <button onclick="closeDeleteModal()" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <div class="flex items-center mb-4">
+                            <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                </svg>
+                            </div>
+                            <div class="ml-4">
+                                <h4 class="text-lg font-medium text-gray-900">Are you sure?</h4>
+                                <p class="text-sm text-gray-500">This action cannot be undone.</p>
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <p class="text-sm"><strong>User:</strong> ${userData.name}</p>
+                            <p class="text-sm"><strong>Username:</strong> @${username}</p>
+                            <p class="text-sm"><strong>Role:</strong> ${userData.role}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end space-x-4">
+                        <button onclick="closeDeleteModal()" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">Cancel</button>
+                        <button onclick="confirmDeleteUser('${username}')" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">Delete User</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+
+        function closeDeleteModal() {
+            const modal = document.querySelector('.fixed.inset-0.bg-gray-600');
+            if (modal) {
+                document.body.removeChild(modal);
+            }
+        }
+
+        function confirmDeleteUser(username) {
+            delete users[username];
+            closeDeleteModal();
+            populateUsersList();
+            updateUserStats();
+            alert('User deleted successfully!');
+        }
+
+        // Export Functions
+        document.getElementById('exportCSV').addEventListener('click', function() {
+            const csvContent = "data:text/csv;charset=utf-8," 
+                + "Registration No,Lorry Reg No,Driver Name,Driver CNIC,CNIC Expiry,Contact Number,Carriage Name,HTV License No,HTV Expiry,HTV District,Tank Capacity,Status,Submitted By,Submitted Date,Reviewed Date,Review Comments,Approved Date,Approval Remarks\n"
+                + cases.map(case_ => 
+                    `"${case_.id}","${case_.lorryRegNo}","${case_.driverName}","${case_.driverCNIC}","${case_.cnicExpiryDate}","${case_.contactNumber}","${case_.carriageName}","${case_.htvLicenseNumber}","${case_.htvExpiryDate}","${case_.htvDistrict}","${case_.tankCapacity}","${case_.status}","${case_.submittedBy}","${case_.submittedDate}","${case_.reviewedDate || ''}","${case_.reviewComments || ''}","${case_.approvedDate || ''}","${case_.approvalRemarks || ''}"`
+                ).join("\n");
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "tlif_cases_complete.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+        document.getElementById('printPDF').addEventListener('click', function() {
+            // Create a detailed print view
+            const printWindow = window.open('', '_blank');
+            const printContent = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>TLIF Cases Report</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; }
+                        .header { text-align: center; margin-bottom: 30px; }
+                        .case { border: 1px solid #ddd; margin-bottom: 20px; padding: 15px; page-break-inside: avoid; }
+                        .case-header { background: #f5f5f5; padding: 10px; margin: -15px -15px 15px -15px; }
+                        .field { margin-bottom: 8px; }
+                        .label { font-weight: bold; display: inline-block; width: 150px; }
+                        .documents { margin-top: 15px; }
+                        .doc-item { margin-bottom: 5px; }
+                        @media print { .case { page-break-inside: avoid; } }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>Tank Lorry Induction Facility (TLIF)</h1>
+                        <h2>Complete Cases Report</h2>
+                        <p>Generated on: ${new Date().toLocaleDateString()}</p>
+                        <p>Total Cases: ${cases.length}</p>
+                    </div>
+                    ${cases.map(case_ => `
+                        <div class="case">
+                            <div class="case-header">
+                                <h3>Case ID: ${case_.id} - Status: ${case_.status}</h3>
+                            </div>
+                            <div class="field"><span class="label">Lorry Reg No:</span> ${case_.lorryRegNo}</div>
+                            <div class="field"><span class="label">Driver Name:</span> ${case_.driverName}</div>
+                            <div class="field"><span class="label">Driver CNIC:</span> ${case_.driverCNIC}</div>
+                            <div class="field"><span class="label">CNIC Expiry:</span> ${case_.cnicExpiryDate}</div>
+                            <div class="field"><span class="label">Contact Number:</span> ${case_.contactNumber}</div>
+                            <div class="field"><span class="label">Carriage Name:</span> ${case_.carriageName}</div>
+                            <div class="field"><span class="label">HTV License No:</span> ${case_.htvLicenseNumber}</div>
+                            <div class="field"><span class="label">HTV Expiry:</span> ${case_.htvExpiryDate}</div>
+                            <div class="field"><span class="label">HTV District:</span> ${case_.htvDistrict}</div>
+                            <div class="field"><span class="label">Tank Capacity:</span> ${case_.tankCapacity} Liters</div>
+                            <div class="field"><span class="label">Submitted By:</span> ${case_.submittedBy}</div>
+                            <div class="field"><span class="label">Submitted Date:</span> ${case_.submittedDate}</div>
+                            ${case_.reviewedDate ? `<div class="field"><span class="label">Reviewed Date:</span> ${case_.reviewedDate}</div>` : ''}
+                            ${case_.approvedDate ? `<div class="field"><span class="label">Approved Date:</span> ${case_.approvedDate}</div>` : ''}
+                            <div class="documents">
+                                <div class="label">Documents:</div>
+                                <div class="doc-item">• Vehicle Registration: ${case_.documents.vehicleReg}</div>
+                                <div class="doc-item">• Driver License: ${case_.documents.driverLicense}</div>
+                                <div class="doc-item">• Insurance: ${case_.documents.insurance}</div>
+                                <div class="doc-item">• Safety Report: ${case_.documents.safetyReport}</div>
+                            </div>
+                            ${case_.reviewComments ? `<div class="field"><span class="label">Review Comments:</span> ${case_.reviewComments}</div>` : ''}
+                            ${case_.approvalRemarks ? `<div class="field"><span class="label">Approval Remarks:</span> ${case_.approvalRemarks}</div>` : ''}
+                        </div>
+                    `).join('')}
+                </body>
+                </html>
+            `;
+            printWindow.document.write(printContent);
+            printWindow.document.close();
+            printWindow.print();
+        });
+
+        // Document Viewer Function
+        function viewDocument(caseId, docType, fileName) {
+            // Create document viewer modal
+            const docModal = document.createElement('div');
+            docModal.id = 'documentModal';
+            docModal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50';
+            
+            const docTypeNames = {
+                vehicleReg: 'Vehicle Registration Certificate',
+                driverLicense: 'Driver License',
+                insurance: 'Insurance Certificate',
+                safetyReport: 'Safety Inspection Report'
+            };
+            
+            docModal.innerHTML = `
+                <div class="relative top-20 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-md bg-white">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-semibold text-gray-900">Document Viewer - ${docTypeNames[docType]}</h3>
+                        <button onclick="closeDocumentModal()" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="text-center space-y-6">
+                        <div class="bg-gray-50 p-8 rounded-lg">
+                            <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                            </div>
+                            <h4 class="text-lg font-semibold text-gray-900 mb-2">${docTypeNames[docType]}</h4>
+                            <p class="text-gray-600 mb-4">File: ${fileName}</p>
+                            <p class="text-sm text-gray-500 mb-6">Case ID: ${caseId}</p>
+                            
+                            <div class="bg-white border-2 border-dashed border-gray-300 rounded-lg p-8 mb-6">
+                                <div class="text-center">
+                                    <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                                    </svg>
+                                    <p class="text-gray-600 font-medium">Document Preview</p>
+                                    <p class="text-sm text-gray-500 mt-2">This is a demo system. In a real implementation, the actual document would be displayed here.</p>
+                                    <div class="mt-4 p-4 bg-blue-50 rounded-lg">
+                                        <p class="text-sm text-blue-800">
+                                            <strong>Demo Note:</strong> Document "${fileName}" would be displayed here with full viewing capabilities including zoom, download, and print options.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex justify-center space-x-4">
+                                <button onclick="downloadDocument('${fileName}')" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm">
+                                    <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                    </svg>
+                                    Download
+                                </button>
+                                <button onclick="printDocument('${fileName}')" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">
+                                    <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                                    </svg>
+                                    Print
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(docModal);
+        }
+
+        function closeDocumentModal() {
+            const docModal = document.getElementById('documentModal');
+            if (docModal) {
+                document.body.removeChild(docModal);
+            }
+        }
+
+        function downloadDocument(fileName) {
+            alert(`Demo: Document "${fileName}" would be downloaded in a real system.`);
+        }
+
+        function printDocument(fileName) {
+            alert(`Demo: Document "${fileName}" would be sent to printer in a real system.`);
+        }
+
+        // Modal Functions
+        function closeModal() {
+            document.getElementById('caseModal').classList.add('hidden');
+        }
+
+        document.getElementById('closeModal').addEventListener('click', closeModal);
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', function() {
+            currentUser = null;
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('loginForm').reset();
+            document.getElementById('loginError').classList.add('hidden');
+        });
+
+        // Initialize with sample data
+        function initializeSampleData() {
+            const sampleCases = [
+                {
+                    id: 'TL20241201001',
+                    lorryRegNo: 'ABC-123',
+                    driverName: 'Ahmed Ali',
+                    driverCNIC: '12345-1234567-1',
+                    cnicExpiryDate: '2025-12-31',
+                    contactNumber: '0300-1234567',
+                    carriageName: 'Transport Co Ltd',
+                    htvLicenseNumber: 'HTV-2024-001',
+                    htvExpiryDate: '2025-06-30',
+                    htvDistrict: 'Karachi',
+                    tankCapacity: '5000',
+                    submittedBy: 'Talha',
+                    submittedDate: '01/12/2024',
+                    status: 'Review',
+                    documents: {
+                        vehicleReg: 'vehicle_reg.pdf',
+                        driverLicense: 'driver_license.pdf',
+                        insurance: 'insurance.pdf',
+                        safetyReport: 'safety_report.pdf'
+                    },
+                    documentRemarks: {
+                        vehicleReg: 'Vehicle registration is valid until 2025',
+                        driverLicense: 'Commercial license with tank lorry endorsement',
+                        insurance: 'Comprehensive coverage including cargo',
+                        safetyReport: 'All safety checks passed with minor recommendations'
+                    },
+                    reviewComments: '',
+                    approvalRemarks: '',
+                    verificationStatus: {}
+                },
+                {
+                    id: 'TL20241201002',
+                    lorryRegNo: 'XYZ-456',
+                    driverName: 'Muhammad Hassan',
+                    driverCNIC: '54321-7654321-2',
+                    cnicExpiryDate: '2025-08-15',
+                    contactNumber: '0301-7654321',
+                    carriageName: 'Logistics Solutions',
+                    htvLicenseNumber: 'HTV-2024-002',
+                    htvExpiryDate: '2025-09-30',
+                    htvDistrict: 'Lahore',
+                    tankCapacity: '8000',
+                    submittedBy: 'Usama',
+                    submittedDate: '01/12/2024',
+                    reviewedDate: '02/12/2024',
+                    status: 'Reviewed',
+                    documents: {
+                        vehicleReg: 'vehicle_reg2.pdf',
+                        driverLicense: 'driver_license2.pdf',
+                        insurance: 'insurance2.pdf',
+                        safetyReport: 'safety_report2.pdf'
+                    },
+                    documentRemarks: {
+                        vehicleReg: 'New vehicle registration, all details verified',
+                        driverLicense: 'Experienced driver with clean record',
+                        insurance: 'Premium insurance with extended coverage',
+                        safetyReport: 'Excellent safety compliance, no issues found'
+                    },
+                    reviewComments: 'All documents verified successfully',
+                    reviewerRemarks: {
+                        vehicleReg: 'Registration document is clear and valid',
+                        driverLicense: 'License is authentic with proper endorsements',
+                        insurance: 'Insurance coverage is comprehensive and current',
+                        safetyReport: 'Safety inspection passed all requirements'
+                    },
+                    approvalRemarks: '',
+                    verificationStatus: {
+                        vehicleReg: 'verified',
+                        driverLicense: 'verified',
+                        insurance: 'verified',
+                        safetyReport: 'verified'
+                    }
+                }
+            ];
+            
+            cases.push(...sampleCases);
+        }
+
+        // Initialize sample data on load
+        initializeSampleData();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97c468bc15619093',t:'MTc1NzM5NzAzOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
